@@ -53,7 +53,8 @@
 /// # mod fordoctest {
 /// use test_log::test;
 ///
-/// #[test(tokio::test)]
+/// #[test]
+/// #[tokio::test]
 /// async fn it_still_works() {
 ///   // ...
 /// }

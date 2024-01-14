@@ -34,25 +34,29 @@ fn with_panic() {
   panic!("success")
 }
 
-#[test_log::test(tokio::test)]
+#[test_log::test]
+#[tokio::test]
 async fn with_inner_test_attribute_and_async() {
   assert_eq!(async { 42 }.await, 42)
 }
 
-#[test_log::test(test_case::test_case(-2, -4))]
+#[test_log::test]
+#[test_case::test_case(-2, -4)]
 fn with_inner_test_attribute_and_test_args(x: i8, y: i8) {
   assert_eq!(x, -2);
   assert_eq!(y, -4);
 }
 
-#[test_log::test(test_case::test_case(-2, -4; "my test name"))]
+#[test_log::test]
+#[test_case::test_case(-2, -4; "my test name")]
 fn with_inner_test_attribute_and_test_args_and_name(x: i8, y: i8) {
   assert_eq!(x, -2);
   assert_eq!(y, -4);
 }
 
 #[should_panic]
-#[test_log::test(test_case::test_case(-2, -4))]
+#[test_log::test]
+#[test_case::test_case(-2, -4)]
 fn with_inner_test_attribute_and_test_args_and_panic(x: i8, _y: i8) {
   assert_eq!(x, 0);
 }
@@ -92,7 +96,8 @@ fn trace_with_custom_runtime() {
   })
 }
 
-#[test_log::test(tokio::test)]
+#[test_log::test]
+#[tokio::test]
 async fn trace_with_tokio_attribute() {
   instrumented(6).await;
   instrumented(4).await;
@@ -108,7 +113,8 @@ async fn trace_with_default_log_filter() {
   debug!("done");
 }
 
-#[test_log::test(tokio::test(flavor = "multi_thread", worker_threads = 1))]
+#[test_log::test]
+#[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn trace_with_tokio_attribute_with_arguments() {
   instrumented(6).await;
   instrumented(4).await;
@@ -155,19 +161,22 @@ mod local {
     panic!("success")
   }
 
-  #[test(tokio::test)]
+  #[test]
+  #[tokio::test]
   async fn with_inner_test_attribute_and_async() {
     assert_eq!(async { 42 }.await, 42)
   }
 
-  #[test(test_case::test_case(-2, -4))]
+  #[test]
+  #[test_case::test_case(-2, -4)]
   fn with_inner_test_attribute_and_test_args(x: i8, y: i8) {
     assert_eq!(x, -2);
     assert_eq!(y, -4);
   }
 
   #[should_panic]
-  #[test(test_case::test_case(-2, -4))]
+  #[test]
+  #[test_case::test_case(-2, -4)]
   fn with_inner_test_attribute_and_test_args_and_panic(x: i8, _y: i8) {
     assert_eq!(x, 0);
   }
