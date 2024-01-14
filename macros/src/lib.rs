@@ -8,6 +8,9 @@ use proc_macro2::TokenStream as Tokens;
 
 use quote::quote;
 
+use syn::ExprLit;
+use syn::LitBool;
+use syn::LitStr;
 use syn::parse::Parse;
 use syn::parse_macro_input;
 use syn::Attribute;
@@ -91,61 +94,62 @@ fn try_test(attr: TokenStream, input: ItemFn) -> syn::Result<Tokens> {
 }
 
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct AttributeArgs {
   default_log_filter: Option<String>,
+  ansi: bool
+}
+
+impl Default for AttributeArgs {
+    fn default() -> Self {
+        Self { 
+          default_log_filter: Default::default(),
+          ansi: true
+        }
+    }
 }
 
 impl AttributeArgs {
   fn try_parse_attr_single(&mut self, attr: &Attribute) -> syn::Result<bool> {
-    if !attr.path().is_ident("test_log") {
-      return Ok(false)
-    }
-
     let nested_meta = attr.parse_args_with(Meta::parse)?;
-    let name_value = if let Meta::NameValue(name_value) = nested_meta {
-      name_value
-    } else {
-      return Err(syn::Error::new_spanned(
-        &nested_meta,
-        "Expected NameValue syntax, e.g. 'default_log_filter = \"debug\"'.",
-      ))
-    };
+    let name_value = nested_meta.require_name_value().map_err(map_name_value_error)?;
+    let ident = name_value.path.require_ident().map_err(map_name_value_error)?;
 
-    let ident = if let Some(ident) = name_value.path.get_ident() {
-      ident
-    } else {
-      return Err(syn::Error::new_spanned(
-        &name_value.path,
-        "Expected NameValue syntax, e.g. 'default_log_filter = \"debug\"'.",
-      ))
-    };
-
-    let arg_ref = if ident == "default_log_filter" {
-      &mut self.default_log_filter
-    } else {
-      return Err(syn::Error::new_spanned(
+    match ident.to_string().as_str() {
+      "default_log_filter" => self.default_log_filter = Some(require_lit_str(&name_value.value)?.value()),
+      "ansi" => self.ansi = require_lit_bool(&name_value.value)?.value(),
+      _ => return Err(syn::Error::new_spanned(
         &name_value.path,
         "Unrecognized attribute, see documentation for details.",
       ))
     };
 
-    if let Expr::Lit(lit) = &name_value.value {
-      if let Lit::Str(lit_str) = &lit.lit {
-        *arg_ref = Some(lit_str.value());
-      }
-    }
-
-    // If we couldn't parse the value on the right-hand side because it was some
-    // unexpected type, e.g. #[test_log::log(default_log_filter=10)], return an error.
-    if arg_ref.is_none() {
-      return Err(syn::Error::new_spanned(
-        &name_value.value,
-        "Failed to parse value, expected a string",
-      ))
-    }
-
     Ok(true)
+  }
+}
+
+
+fn map_name_value_error(err: syn::Error) -> syn::Error {
+  syn::Error::new(err.span(), "Expected NameValue syntax, e.g. 'default_log_filter = \"debug\"'.")
+}
+
+fn require_lit_str(expr: &Expr) -> syn::Result<&LitStr> {
+  match expr {
+    Expr::Lit(ExprLit { lit: Lit::Str(lit_str), .. }) => Ok(lit_str),
+    _ => Err(syn::Error::new_spanned(
+      &expr,
+      "Failed to parse value, expected a string",
+    ))
+  }
+}
+
+fn require_lit_bool(expr: &Expr) -> syn::Result<&LitBool> {
+  match expr {
+      Expr::Lit(ExprLit { lit: Lit::Bool(lit_bool), .. }) => Ok(lit_bool),
+      _ => Err(syn::Error::new_spanned(
+        &expr,
+        "Failed to parse value, expected a bool",
+      ))
   }
 }
 
@@ -227,6 +231,7 @@ fn expand_tracing_init(attribute_args: &AttributeArgs) -> Tokens {
         .with_env_filter(#env_filter)
         .with_span_events(__internal_event_filter)
         .with_test_writer()
+        .with_ansi(attribute_args.ansi)
         .try_init();
     }
   }
