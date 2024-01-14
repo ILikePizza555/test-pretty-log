@@ -19,6 +19,7 @@
                     buildInputs = with pkgs; [
                         nixd
                         rust
+                        cargo-expand
                     ];
                 };
             }
