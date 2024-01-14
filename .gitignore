@@ -11,3 +11,5 @@ Cargo.lock
 
 # These Jetbrains editor files are not meant to be persisted.
 **/.idea/
+
+.direnv
