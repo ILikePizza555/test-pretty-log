@@ -104,9 +104,8 @@ async fn trace_with_tokio_attribute() {
   debug!("done");
 }
 
-#[cfg(feature = "unstable")]
-#[test_log::test(tokio::test)]
-#[test_log(default_log_filter = "info")]
+#[test_log::test(default_log_filter = "info")]
+#[tokio::test]
 async fn trace_with_default_log_filter() {
   instrumented(6).await;
   instrumented(4).await;
