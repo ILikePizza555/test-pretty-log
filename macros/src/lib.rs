@@ -198,6 +198,8 @@ fn expand_tracing_init(attribute_args: &AttributeArgs) -> Tokens {
     quote! { ::test_log::tracing_subscriber::EnvFilter::from_default_env() }
   };
 
+  let enable_ansi = attribute_args.ansi;
+
   quote! {
     {
       let __internal_event_filter = {
@@ -231,7 +233,7 @@ fn expand_tracing_init(attribute_args: &AttributeArgs) -> Tokens {
         .with_env_filter(#env_filter)
         .with_span_events(__internal_event_filter)
         .with_test_writer()
-        .with_ansi(attribute_args.ansi)
+        .with_ansi(#enable_ansi)
         .try_init();
     }
   }
