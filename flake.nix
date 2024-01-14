@@ -22,6 +22,16 @@
                         cargo-expand
                     ];
                 };
+                checks.default = pkgs.stdenv.mkDerivation {
+                    name = "test-pretty-log-check";
+                    src = ./.;
+                    doCheck = true;
+                    nativeBuildInputs = [rust];
+                    checkPhase = ''
+                        cargo test
+                        cargo test --features trace
+                    '';
+                };
             }
         );
 }
