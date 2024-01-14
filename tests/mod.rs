@@ -18,36 +18,36 @@ mod something {
 use something::Error;
 
 
-#[test_log::test]
+#[test_pretty_log::test]
 fn without_return_type() {
   assert_eq!(2 + 2, 4);
 }
 
-#[test_log::test]
+#[test_pretty_log::test]
 fn with_return_type() -> Result<(), Error> {
   Ok(())
 }
 
-#[test_log::test]
+#[test_pretty_log::test]
 #[should_panic(expected = "success")]
 fn with_panic() {
   panic!("success")
 }
 
-#[test_log::test]
+#[test_pretty_log::test]
 #[tokio::test]
 async fn with_inner_test_attribute_and_async() {
   assert_eq!(async { 42 }.await, 42)
 }
 
-#[test_log::test]
+#[test_pretty_log::test]
 #[test_case::test_case(-2, -4)]
 fn with_inner_test_attribute_and_test_args(x: i8, y: i8) {
   assert_eq!(x, -2);
   assert_eq!(y, -4);
 }
 
-#[test_log::test]
+#[test_pretty_log::test]
 #[test_case::test_case(-2, -4; "my test name")]
 fn with_inner_test_attribute_and_test_args_and_name(x: i8, y: i8) {
   assert_eq!(x, -2);
@@ -55,7 +55,7 @@ fn with_inner_test_attribute_and_test_args_and_name(x: i8, y: i8) {
 }
 
 #[should_panic]
-#[test_log::test]
+#[test_pretty_log::test]
 #[test_case::test_case(-2, -4)]
 fn with_inner_test_attribute_and_test_args_and_panic(x: i8, _y: i8) {
   assert_eq!(x, 0);
@@ -85,7 +85,7 @@ async fn instrumented(input: usize) -> usize {
 /// RUST_LOG=debug RUST_LOG_SPAN_EVENTS=full \
 ///   cargo test --features trace trace_with_custom_runtime -- --nocapture
 /// ```
-#[test_log::test]
+#[test_pretty_log::test]
 fn trace_with_custom_runtime() {
   let rt = Builder::new_current_thread().build().unwrap();
 
@@ -96,7 +96,7 @@ fn trace_with_custom_runtime() {
   })
 }
 
-#[test_log::test]
+#[test_pretty_log::test]
 #[tokio::test]
 async fn trace_with_tokio_attribute() {
   instrumented(6).await;
@@ -104,7 +104,7 @@ async fn trace_with_tokio_attribute() {
   debug!("done");
 }
 
-#[test_log::test(default_log_filter = "info")]
+#[test_pretty_log::test(default_log_filter = "info")]
 #[tokio::test]
 async fn trace_with_default_log_filter() {
   instrumented(6).await;
@@ -112,7 +112,7 @@ async fn trace_with_default_log_filter() {
   debug!("done");
 }
 
-#[test_log::test]
+#[test_pretty_log::test]
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn trace_with_tokio_attribute_with_arguments() {
   instrumented(6).await;
@@ -133,7 +133,7 @@ impl<T> Foo for T {}
 
 /// Make sure that Foo::map does not interfere with generated
 /// initialization code.
-#[test_log::test]
+#[test_pretty_log::test]
 fn unambiguous_map() {}
 
 
@@ -142,7 +142,7 @@ fn unambiguous_map() {}
 mod local {
   use super::Error;
 
-  use test_log::test;
+  use test_pretty_log::test;
 
   #[test]
   fn without_return_type() {
