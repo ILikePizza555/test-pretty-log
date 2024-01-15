@@ -6,7 +6,7 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as Tokens;
 
-use quote::quote;
+use quote::{quote, ToTokens};
 
 use syn::ExprLit;
 use syn::LitBool;
@@ -19,18 +19,13 @@ use syn::Meta;
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
 
+const ENV_VAR_SPAN_EVENTS: &str = "RUST_LOG_SPAN_EVENTS";
+const ENV_VAR_COLOR: &str = "RUST_LOG_COLOR";
+
+#[derive(Debug, Default)]
 struct MacroArgs {
   default_log_filter: Option<String>,
-  ansi: bool
-}
-
-impl Default for MacroArgs {
-  fn default() -> Self {
-    Self { 
-      default_log_filter: Default::default(),
-      ansi: true
-    }
-  }
+  color: Option<bool>
 }
 
 impl MacroArgs {
@@ -42,7 +37,7 @@ impl MacroArgs {
       let ident = name_value.path.require_ident().map_err(map_name_value_error)?;
       match ident.to_string().as_str() {
         "default_log_filter" => new_self.default_log_filter = Some(require_lit_str(&name_value.value)?.value()),
-        "ansi" => new_self.ansi = require_lit_bool(&name_value.value)?.value(),
+        "color" => new_self.color = Some(require_lit_bool(&name_value.value)?.value()),
         _ => return Err(syn::Error::new_spanned(
           &name_value.path,
           "Unrecognized attribute, see documentation for details.",
@@ -116,6 +111,11 @@ fn try_test(punctuated_args: Punctuated<Meta, Comma>, input: ItemFn) -> syn::Res
       // The alternative would be to use fully qualified call syntax in
       // all initialization code, but that's much harder to control.
       mod init {
+        fn env_var(key: &str) -> Option<&str> {
+          ::std::env::var_os(key)
+            .map(|oss| oss.to_ascii_lowercase().to_str().expect(format!("test-pretty-log: {} must be valid UTF-8", key).as_str()))
+        }
+
         pub fn init() {
           #logging_init
           #tracing_init
@@ -161,31 +161,16 @@ fn expand_logging_init(_attribute_args: &MacroArgs) -> Tokens {
 /// Expand the initialization code for the `tracing` crate.
 #[cfg(feature = "trace")]
 fn expand_tracing_init(attribute_args: &MacroArgs) -> Tokens {
-  let env_filter = if let Some(default_log_filter) = &attribute_args.default_log_filter {
-    quote! {
-      ::test_pretty_log::tracing_subscriber::EnvFilter::builder()
-        .with_default_directive(
-          #default_log_filter
-            .parse()
-            .expect("test-log: default_log_filter must be valid")
-        )
-        .from_env_lossy()
-    }
-  } else {
-    quote! { ::test_pretty_log::tracing_subscriber::EnvFilter::from_default_env() }
-  };
-
-  let enable_ansi = attribute_args.ansi;
+  let env_filter = build_env_filter_token_stream(attribute_args);
+  let enable_ansi = build_enable_ansi_token_stream(attribute_args);
 
   quote! {
     {
       let __internal_event_filter = {
         use ::test_pretty_log::tracing_subscriber::fmt::format::FmtSpan;
 
-        match ::std::env::var_os("RUST_LOG_SPAN_EVENTS") {
+        match env_var(#ENV_VAR_SPAN_EVENTS) {
           Some(mut value) => {
-            value.make_ascii_lowercase();
-            let value = value.to_str().expect("test-log: RUST_LOG_SPAN_EVENTS must be valid UTF-8");
             value
               .split(",")
               .map(|filter| match filter.trim() {
@@ -195,7 +180,7 @@ fn expand_tracing_init(attribute_args: &MacroArgs) -> Tokens {
                 "close" => FmtSpan::CLOSE,
                 "active" => FmtSpan::ACTIVE,
                 "full" => FmtSpan::FULL,
-                _ => panic!("test-log: RUST_LOG_SPAN_EVENTS must contain filters separated by `,`.\n\t\
+                _ => panic!("test-pretty-log: RUST_LOG_SPAN_EVENTS must contain filters separated by `,`.\n\t\
                   For example: `active` or `new,close`\n\t\
                   Supported filters: new, enter, exit, close, active, full\n\t\
                   Got: {}", value),
@@ -213,6 +198,35 @@ fn expand_tracing_init(attribute_args: &MacroArgs) -> Tokens {
         .with_ansi(#enable_ansi)
         .try_init();
     }
+  }
+}
+
+#[cfg(feature = "trace")]
+fn build_env_filter_token_stream(attribute_args: &MacroArgs) -> proc_macro2::TokenStream {
+  match &attribute_args.default_log_filter {
+    Some(default_log_filter) => quote! {
+      ::test_pretty_log::tracing_subscriber::EnvFilter::builder()
+        .with_default_directive(
+          #default_log_filter
+            .parse()
+            .expect("test-pretty-log: default_log_filter must be valid"))
+        .from_env_lossy()
+    },
+    _ => quote! { ::test_pretty_log::tracing_subscriber::EnvFilter::from_default_env() }
+  }
+}
+
+#[cfg(feature = "trace")]
+fn build_enable_ansi_token_stream(attribute_args: &MacroArgs) -> proc_macro2::TokenStream {
+  match &attribute_args.color {
+      Some(color) => color.to_token_stream(),
+      None => quote! {
+        match env_var(#ENV_VAR_COLOR) {
+          Some("1" | "true" | "t" | "on") => true,
+          None | Some("0" | "false" | "f" | "off") => false,
+          Some(_) => panic!("test-pretty-log: {} must be a boolean value", #ENV_VAR_COLOR)
+        }
+      }
   }
 }
 
