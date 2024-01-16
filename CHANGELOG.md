@@ -1,3 +1,7 @@
+0.5.1
+---
+- Update links in cargo.toml
+
 0.5.0
 ---
 - Forked from `test-log`
