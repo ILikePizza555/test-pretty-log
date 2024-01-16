@@ -24,6 +24,7 @@ use syn::token::Comma;
 
 const ENV_VAR_SPAN_EVENTS: &str = "RUST_LOG_SPAN_EVENTS";
 const ENV_VAR_COLOR: &str = "RUST_LOG_COLOR";
+const ENV_VAR_FORMAT: &str = "RUST_LOG_FORMAT";
 
 #[derive(Debug, Default)]
 struct MacroArgs {
@@ -231,12 +232,18 @@ fn expand_tracing_init(attribute_args: &MacroArgs) -> Tokens {
         }
       };
 
-      let _ = ::test_pretty_log::tracing_subscriber::FmtSubscriber::builder()
+      let subscriber_builder = ::test_pretty_log::tracing_subscriber::FmtSubscriber::builder()
         .with_env_filter(#env_filter)
         .with_span_events(__internal_event_filter)
         .with_test_writer()
-        .with_ansi(#enable_ansi)
-        .try_init();
+        .with_ansi(#enable_ansi);
+
+      let _ = match env_var(#ENV_VAR_FORMAT).as_deref() {
+        None | Some("pretty") => subscriber_builder.pretty().try_init(),
+        Some("full") => subscriber_builder.try_init(),
+        Some("compact") => subscriber_builder.compact().try_init(),
+        Some(e) => panic!("test-pretty-log: RUST_LOG_FORMAT must be one of `pretty`, `full`, or `compact`. Got: {}", e),
+      };
     }
   }
 }
