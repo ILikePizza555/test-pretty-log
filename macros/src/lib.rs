@@ -222,8 +222,8 @@ fn build_enable_ansi_token_stream(attribute_args: &MacroArgs) -> proc_macro2::To
       Some(color) => color.to_token_stream(),
       None => quote! {
         match env_var(#ENV_VAR_COLOR).as_deref() {
-          Some("1" | "true" | "t" | "on") => true,
-          None | Some("0" | "false" | "f" | "off") => false,
+          None | Some("1" | "true" | "t" | "on") => true,
+          Some("0" | "false" | "f" | "off") => false,
           Some(_) => panic!("test-pretty-log: {} must be a boolean value", #ENV_VAR_COLOR)
         }
       }
