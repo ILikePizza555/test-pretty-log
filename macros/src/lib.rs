@@ -3,6 +3,8 @@
 
 extern crate proc_macro;
 
+use std::iter::Peekable;
+
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as Tokens;
 
@@ -24,6 +26,7 @@ const ENV_VAR_COLOR: &str = "RUST_LOG_COLOR";
 
 #[derive(Debug, Default)]
 struct MacroArgs {
+  inner_test: Option<Tokens>,
   default_log_filter: Option<String>,
   color: Option<bool>
 }
@@ -31,13 +34,29 @@ struct MacroArgs {
 impl MacroArgs {
   fn from_punctuated(punctuated: Punctuated<Meta, Comma>) -> syn::Result<Self> {
     let mut new_self = Self::default();
+    let mut punctuated_iter = punctuated.into_iter().peekable();
     
+    new_self.parse_inner_test(&mut punctuated_iter);
+    new_self.parse_name_value_args(&mut punctuated_iter)?;
+
+    Ok(new_self)
+  }
+
+  fn parse_inner_test<I: Iterator<Item = Meta>>(&mut self, punctuated: &mut Peekable<I>) {
+    if let Some(Meta::Path(_)) = punctuated.peek() {
+      self.inner_test = punctuated.next().map(|path| path.into_token_stream());
+    } else {
+      self.inner_test = None
+    }
+  }
+
+  fn parse_name_value_args<I: Iterator<Item = Meta>>(&mut self, punctuated: &mut I) -> syn::Result<()> {
     for m in punctuated {
       let name_value =  m.require_name_value().map_err(map_name_value_error)?;
       let ident = name_value.path.require_ident().map_err(map_name_value_error)?;
       match ident.to_string().as_str() {
-        "default_log_filter" => new_self.default_log_filter = Some(require_lit_str(&name_value.value)?.value()),
-        "color" => new_self.color = Some(require_lit_bool(&name_value.value)?.value()),
+        "default_log_filter" => self.default_log_filter = Some(require_lit_str(&name_value.value)?.value()),
+        "color" => self.color = Some(require_lit_bool(&name_value.value)?.value()),
         _ => return Err(syn::Error::new_spanned(
           &name_value.path,
           "Unrecognized attribute, see documentation for details.",
@@ -45,9 +64,10 @@ impl MacroArgs {
       };
     }
 
-    Ok(new_self)
+    Ok(())
   }
 }
+
 
 fn map_name_value_error(err: syn::Error) -> syn::Error {
   syn::Error::new(err.span(), "Expected NameValue syntax, e.g. 'default_log_filter = \"debug\"'.")
@@ -86,7 +106,7 @@ pub fn test(args: TokenStream, item: TokenStream) -> TokenStream {
 
 fn try_test(punctuated_args: Punctuated<Meta, Comma>, input: ItemFn) -> syn::Result<Tokens> {
   let macro_args = MacroArgs::from_punctuated(punctuated_args)?;
-  
+
   let ItemFn {
     attrs,
     vis,
@@ -202,7 +222,7 @@ fn expand_tracing_init(attribute_args: &MacroArgs) -> Tokens {
 }
 
 #[cfg(feature = "trace")]
-fn build_env_filter_token_stream(attribute_args: &MacroArgs) -> proc_macro2::TokenStream {
+fn build_env_filter_token_stream(attribute_args: &MacroArgs) -> Tokens {
   match &attribute_args.default_log_filter {
     Some(default_log_filter) => quote! {
       ::test_pretty_log::tracing_subscriber::EnvFilter::builder()
@@ -217,7 +237,7 @@ fn build_env_filter_token_stream(attribute_args: &MacroArgs) -> proc_macro2::Tok
 }
 
 #[cfg(feature = "trace")]
-fn build_enable_ansi_token_stream(attribute_args: &MacroArgs) -> proc_macro2::TokenStream {
+fn build_enable_ansi_token_stream(attribute_args: &MacroArgs) -> Tokens {
   match &attribute_args.color {
       Some(color) => color.to_token_stream(),
       None => quote! {
