@@ -43,8 +43,7 @@ You can also stack another attribute. For example, suppose you use
 ```rust
 use test_log::test;
 
-#[test]
-#[tokio::test]
+#[test(tokio::test)]
 async fn it_still_works() {
   // ...
 }
@@ -54,7 +53,7 @@ Lastly, you can disable coloring for a test with a parameter:
 ```rust
 use test_log::test;
 
-#[test(ansi=false)]
+#[test(color=false)]
 fn no_more_colored_output() {
   // :blobfoxsad:
 }
@@ -84,6 +83,16 @@ Valid events are `new`, `enter`, `exit`, `close`, `active`, and `full`.
 See the [`tracing_subscriber` docs][tracing-events-docs-rs] for details
 on what the events mean.
 
+The `RUST_LOG_COLOR` environment variable can be used to
+configure outputting ANSI colors in the tracing subscriber to print
+colorized logs. By default, this is enabled. Valid values are common
+boolean representations (`f`, `false`, `off`, `0`, `t`, `true`, `on`, `1`).
+The `color` parameter of the macro overrides this setting.
+
+The `RUST_LOG_FORMAT` environment variable can be used to configure
+the formatter of the tracing subcriber. By default, it is set to `pretty`.
+Valid values are `pretty`, `full`, or `compact`.
+
 #### Features
 
 The crate comes with two features:
@@ -95,10 +104,3 @@ The crate comes with two features:
 Depending on what backend the crate-under-test (and its dependencies)
 use, the respective feature should be enabled to make messages that are
 emitted by the test manifest on the console.
-
-[docs-rs]: https://docs.rs/crate/test-log
-[env-docs-rs]: https://docs.rs/env_logger/0.10.1/env_logger
-[log]: https://crates.io/crates/log
-[tokio-test]: https://docs.rs/tokio/1.4.0/tokio/attr.test.html
-[tracing]: https://crates.io/crates/tracing
-[tracing-events-docs-rs]: https://docs.rs/tracing-subscriber/0.3.1/tracing_subscriber/fmt/struct.SubscriberBuilder.html#method.with_span_events
