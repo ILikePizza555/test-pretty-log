@@ -1,3 +1,11 @@
+0.5.0
+---
+- Forked from `test-log`
+- Switched to using SemVer
+- Tracing subscriber now has ansi and the `pretty` formatter enabled on it by default
+  - Usage of ANSI color codes can be controlled with the new `color` attribute argument, or the `RUST_LOG_COLOR` environment variable.
+  - Formatter can be changed with the `RUST_LOG_FORMAT` environment variable.
+
 0.2.14
 ------
 - Factored out `test-log-macros` crate to relieve users from having to
