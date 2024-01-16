@@ -115,7 +115,11 @@ fn try_test(punctuated_args: Punctuated<Meta, Comma>, input: ItemFn) -> syn::Res
     block,
   } = input;
 
-  let test_attr = macro_args.inner_test.as_ref().map(|inner_test| quote! { #[#inner_test] });
+  println!("{:#?}", attrs);
+
+  // Convert wrapped test attribute into a real attribute, or inject one if it doesn't exist
+  let test_attr = extract_test_attribute(&macro_args, &attrs);
+
   let logging_init = expand_logging_init(&macro_args);
   let tracing_init = expand_tracing_init(&macro_args);
 
@@ -153,6 +157,20 @@ fn try_test(punctuated_args: Punctuated<Meta, Comma>, input: ItemFn) -> syn::Res
   Ok(result)
 }
 
+
+fn extract_test_attribute(macro_args: &MacroArgs, attrs: &Vec<Attribute>) -> Option<Tokens> {
+  if let Some(inner_test_arg) = &macro_args.inner_test {
+    Some(quote! { #[#inner_test_arg] })
+  } else if attrs.iter().find(|&attr| is_test_attribute(attr)).is_none() {
+    Some(quote! { #[::core::prelude::v1::test] })
+  } else {
+    None
+  }
+}
+
+fn is_test_attribute(attribute: &Attribute) -> bool {
+  attribute.meta.path().segments.last().is_some_and(|seg| seg.ident == "test")
+}
 
 /// Expand the initialization code for the `log` crate.
 #[cfg(feature = "log")]

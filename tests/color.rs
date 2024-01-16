@@ -1,6 +1,6 @@
 use tracing::{info, debug};
 
-/// Manually verify this with the following command
+/// Manually verify these tests with the following command
 /// ```sh
 /// RUST_LOG=debug cargo test --test color --features trace -- --nocapture
 /// ```

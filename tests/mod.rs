@@ -35,8 +35,19 @@ fn with_panic() {
 }
 
 #[test_pretty_log::test]
-#[tokio::test]
+#[test]
+fn with_test_attribute() {
+  assert_eq!(6 + 9, 15)
+}
+
+#[test_pretty_log::test(tokio::test)]
 async fn with_inner_test_attribute_and_async() {
+  assert_eq!(async { 42 }.await, 42)
+}
+
+#[test_pretty_log::test]
+#[tokio::test]
+async fn with_test_attribute_and_async() {
   assert_eq!(async { 42 }.await, 42)
 }
 
