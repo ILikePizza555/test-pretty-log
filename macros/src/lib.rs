@@ -115,7 +115,6 @@ fn try_test(punctuated_args: Punctuated<Meta, Comma>, input: ItemFn) -> syn::Res
     block,
   } = input;
 
-  // Convert wrapped test attribute into a real attribute, or inject one if it doesn't exist
   let test_attr = extract_test_attribute(&macro_args, &attrs);
 
   let logging_init = expand_logging_init(&macro_args);
@@ -156,6 +155,8 @@ fn try_test(punctuated_args: Punctuated<Meta, Comma>, input: ItemFn) -> syn::Res
 }
 
 
+/// Convert macro_args.inner test to a test attribute if not None, otherwise check attrs for
+/// a test attribute, if none exist, inject own.
 fn extract_test_attribute(macro_args: &MacroArgs, attrs: &Vec<Attribute>) -> Option<Tokens> {
   if let Some(inner_test_arg) = &macro_args.inner_test {
     Some(quote! { #[#inner_test_arg] })
