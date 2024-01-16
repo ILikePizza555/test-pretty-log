@@ -6,6 +6,8 @@
 //! A crate providing a replacement #[[macro@test]] attribute that
 //! initializes logging and/or tracing infrastructure before running
 //! tests.
+//!
+//! This crate was forked from [test-log](https://github.com/d-e-s-o/test-log)
 
 /// A procedural macro for the `test` attribute.
 ///
@@ -53,8 +55,7 @@
 /// # mod fordoctest {
 /// use test_pretty_log::test;
 ///
-/// #[test]
-/// #[tokio::test]
+/// #[test(tokio::test)]
 /// async fn it_still_works() {
 ///   // ...
 /// }
