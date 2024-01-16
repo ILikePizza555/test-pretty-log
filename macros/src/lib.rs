@@ -10,6 +10,7 @@ use proc_macro2::TokenStream as Tokens;
 
 use quote::{quote, ToTokens};
 
+use syn::Attribute;
 use syn::ExprLit;
 use syn::LitBool;
 use syn::LitStr;
@@ -114,10 +115,12 @@ fn try_test(punctuated_args: Punctuated<Meta, Comma>, input: ItemFn) -> syn::Res
     block,
   } = input;
 
+  let test_attr = macro_args.inner_test.as_ref().map(|inner_test| quote! { #[#inner_test] });
   let logging_init = expand_logging_init(&macro_args);
   let tracing_init = expand_tracing_init(&macro_args);
 
   let result = quote! {
+    #test_attr
     #(#attrs)*
     #vis #sig {
       // We put all initialization code into a separate module here in
