@@ -111,9 +111,9 @@ fn try_test(punctuated_args: Punctuated<Meta, Comma>, input: ItemFn) -> syn::Res
       // The alternative would be to use fully qualified call syntax in
       // all initialization code, but that's much harder to control.
       mod init {
-        fn env_var(key: &str) -> Option<&str> {
+        fn env_var(key: &str) -> Option<String> {
           ::std::env::var_os(key)
-            .map(|oss| oss.to_ascii_lowercase().to_str().expect(format!("test-pretty-log: {} must be valid UTF-8", key).as_str()))
+            .map(|oss| oss.to_ascii_lowercase().to_str().expect(format!("test-pretty-log: {} must be valid UTF-8", key).as_str()).to_owned())
         }
 
         pub fn init() {
@@ -169,7 +169,7 @@ fn expand_tracing_init(attribute_args: &MacroArgs) -> Tokens {
       let __internal_event_filter = {
         use ::test_pretty_log::tracing_subscriber::fmt::format::FmtSpan;
 
-        match env_var(#ENV_VAR_SPAN_EVENTS) {
+        match env_var(#ENV_VAR_SPAN_EVENTS).as_deref() {
           Some(mut value) => {
             value
               .split(",")
@@ -221,7 +221,7 @@ fn build_enable_ansi_token_stream(attribute_args: &MacroArgs) -> proc_macro2::To
   match &attribute_args.color {
       Some(color) => color.to_token_stream(),
       None => quote! {
-        match env_var(#ENV_VAR_COLOR) {
+        match env_var(#ENV_VAR_COLOR).as_deref() {
           Some("1" | "true" | "t" | "on") => true,
           None | Some("0" | "false" | "f" | "off") => false,
           Some(_) => panic!("test-pretty-log: {} must be a boolean value", #ENV_VAR_COLOR)
