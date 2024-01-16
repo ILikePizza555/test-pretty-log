@@ -7,7 +7,7 @@
 //! ```
 
 
-#[test_pretty_log::test(ansi = false)]
+#[test_pretty_log::test(color = false)]
 fn it_works() {
   assert_eq!(2 + 2, 4);
 }

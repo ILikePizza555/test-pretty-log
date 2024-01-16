@@ -104,6 +104,15 @@ async fn trace_with_tokio_attribute() {
   debug!("done");
 }
 
+#[test_pretty_log::test(color = false)]
+#[tokio::test]
+async fn trace_with_color_off() {
+  info!("This should not be colored");
+  instrumented(6).await;
+  instrumented(4).await;
+  debug!("done");
+}
+
 #[test_pretty_log::test(default_log_filter = "info")]
 #[tokio::test]
 async fn trace_with_default_log_filter() {
