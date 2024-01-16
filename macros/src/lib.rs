@@ -115,8 +115,6 @@ fn try_test(punctuated_args: Punctuated<Meta, Comma>, input: ItemFn) -> syn::Res
     block,
   } = input;
 
-  println!("{:#?}", attrs);
-
   // Convert wrapped test attribute into a real attribute, or inject one if it doesn't exist
   let test_attr = extract_test_attribute(&macro_args, &attrs);
 
