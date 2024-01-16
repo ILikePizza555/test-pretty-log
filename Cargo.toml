@@ -5,8 +5,8 @@ authors = ["Izzy Lancaster <izzylanfox@gmail.com>", "Daniel Mueller <deso@posteo
 edition = "2021"
 rust-version = "1.75"
 license = "Apache-2.0 OR MIT"
-homepage = "https://github.com/d-e-s-o/test-log"
-repository = "https://github.com/d-e-s-o/test-log.git"
+homepage = "https://github.com/ILikePizza555/test-pretty-log"
+repository = "https://github.com/ILikePizza555/test-pretty-log.git"
 readme = "README.md"
 categories = [
   "development-tools::testing",
