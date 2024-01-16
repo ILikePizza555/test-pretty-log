@@ -37,6 +37,6 @@ fn with_test_args_and_name(x: i8, y: i8) {
 #[test_case::test_case(-2, -4; "my test name")]
 #[test_pretty_log::test]
 #[test]
-fn with_test_args_and_name_and_panic(x: i8, y: i8) {
+fn with_test_args_and_name_and_panic(x: i8, _y: i8) {
   assert_eq!(x, 0);
 }
