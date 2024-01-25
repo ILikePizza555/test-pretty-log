@@ -1,7 +1,7 @@
 test-pretty-log
 ========
 
-![Crates.io Version](https://img.shields.io/crates/v/test-pretty-log)
+[![Crates.io Version](https://img.shields.io/crates/v/test-pretty-log)](https://crates.io/crates/test-pretty-log)
 
 **test-pretty-log** is a crate that takes care of automatically initializing
 logging and/or tracing for Rust tests.
