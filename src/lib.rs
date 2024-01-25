@@ -11,8 +11,8 @@
 
 /// A procedural macro for the `test` attribute.
 ///
-/// The attribute can be used to define a test that has the `env_logger`
-/// and/or `tracing` crates initialized (depending on the features used).
+/// The attribute can be used to define a test that has the `tracing`
+/// crates initialized (depending on the features used).
 ///
 /// # Example
 ///

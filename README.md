@@ -8,12 +8,14 @@ logging and/or tracing for Rust tests.
 It is based off [test-log](https://github.com/d-e-s-o/test-log) and enables
 the logs to use pretty colors! :3
 
+Note that this crate has removed support for `log` and focuses entirely on
+`tracing`. Re-introducing support for `log` is planned at a later date.
+
 Usage
 -----
 
 The crate provides a custom `#[test]` attribute that, when used for
-running a particular test, takes care of initializing `log` and/or
-`tracing` beforehand.
+running a particular test, takes care of initializing `tracing` beforehand.
 
 #### Example
 
@@ -73,11 +75,10 @@ used to influence the log level to work with (among other things).
 Please refer to the [`env_logger` docs][env-docs-rs] for more
 information.
 
-If the `trace` feature is enabled, the `RUST_LOG_SPAN_EVENTS`
-environment variable can be used to configure the tracing subscriber to
-log synthesized events at points in the span lifecycle. Set the variable
-to a comma-separated list of events you want to see. For example,
-`RUST_LOG_SPAN_EVENTS=full` or `RUST_LOG_SPAN_EVENTS=new,close`.
+The `RUST_LOG_SPAN_EVENTS` environment variable can be used to configure
+the tracing subscriber to log synthesized events at points in the span lifecycle.
+Set the variable to a comma-separated list of events you want to see. 
+For example, `RUST_LOG_SPAN_EVENTS=full` or `RUST_LOG_SPAN_EVENTS=new,close`.
 
 Valid events are `new`, `enter`, `exit`, `close`, `active`, and `full`.
 See the [`tracing_subscriber` docs][tracing-events-docs-rs] for details
@@ -92,15 +93,3 @@ The `color` parameter of the macro overrides this setting.
 The `RUST_LOG_FORMAT` environment variable can be used to configure
 the formatter of the tracing subcriber. By default, it is set to `pretty`.
 Valid values are `pretty`, `full`, or `compact`.
-
-#### Features
-
-The crate comes with two features:
-- `log`, enabled by default, controls initialization for the `log`
-  crate.
-- `trace`, disabled by default, controls initialization for the
-  `tracing` crate.
-
-Depending on what backend the crate-under-test (and its dependencies)
-use, the respective feature should be enabled to make messages that are
-emitted by the test manifest on the console.

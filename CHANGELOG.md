@@ -1,3 +1,9 @@
+0.6.0
+---
+- Remove dependency on env_logger.
+- Remove all the feature flags as they are pretty much unused.
+- Added a runtime library for static macro code that doesn't change.
+
 0.5.1
 ---
 - Update links in cargo.toml
