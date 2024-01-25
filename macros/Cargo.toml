@@ -1,13 +1,13 @@
 [package]
 name = "test-pretty-log-macros"
-version = "0.6.0"
+version = "0.6.1"
 authors = ["Daniel Mueller <deso@posteo.net>"]
 edition = "2021"
 rust-version = "1.61"
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/d-e-s-o/test-log.git"
 description = """
-Supporting procedural macro crate for test-log.
+Supporting procedural macro crate for test-pretty-log.
 """
 
 [lib]
