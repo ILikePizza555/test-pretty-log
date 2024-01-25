@@ -118,7 +118,6 @@ fn try_test(punctuated_args: Punctuated<Meta, Comma>, input: ItemFn) -> syn::Res
 
   let test_attr = extract_test_attribute(&macro_args, &attrs);
 
-  let logging_init = expand_logging_init(&macro_args);
   let tracing_init = expand_tracing_init(&macro_args);
 
   let result = quote! {
@@ -139,7 +138,6 @@ fn try_test(punctuated_args: Punctuated<Meta, Comma>, input: ItemFn) -> syn::Res
         use ::test_pretty_log::runtime::env_var;
 
         pub fn init() {
-          #logging_init
           #tracing_init
         }
       }
@@ -169,35 +167,7 @@ fn is_test_attribute(attribute: &Attribute) -> bool {
   attribute.meta.path().segments.last().is_some_and(|seg| seg.ident == "test")
 }
 
-/// Expand the initialization code for the `log` crate.
-#[cfg(feature = "log")]
-fn expand_logging_init(attribute_args: &MacroArgs) -> Tokens {
-  let add_default_log_filter = if let Some(default_log_filter) = &attribute_args.default_log_filter
-  {
-    quote! {
-      let env_logger_builder = env_logger_builder
-        .parse_env(::test_pretty_log::env_logger::Env::default().default_filter_or(#default_log_filter));
-    }
-  } else {
-    quote! {}
-  };
-
-  quote! {
-    {
-      let mut env_logger_builder = ::test_pretty_log::env_logger::builder();
-      #add_default_log_filter
-      let _ = env_logger_builder.is_test(true).try_init();
-    }
-  }
-}
-
-#[cfg(not(feature = "log"))]
-fn expand_logging_init(_attribute_args: &MacroArgs) -> Tokens {
-  quote! {}
-}
-
 /// Expand the initialization code for the `tracing` crate.
-#[cfg(feature = "trace")]
 fn expand_tracing_init(attribute_args: &MacroArgs) -> Tokens {
   let env_filter = build_env_filter_token_stream(attribute_args);
   let enable_ansi = build_enable_ansi_token_stream(attribute_args);
@@ -245,7 +215,6 @@ fn expand_tracing_init(attribute_args: &MacroArgs) -> Tokens {
   }
 }
 
-#[cfg(feature = "trace")]
 fn build_env_filter_token_stream(attribute_args: &MacroArgs) -> Tokens {
   match &attribute_args.default_log_filter {
     Some(default_log_filter) => quote! {
@@ -260,7 +229,6 @@ fn build_env_filter_token_stream(attribute_args: &MacroArgs) -> Tokens {
   }
 }
 
-#[cfg(feature = "trace")]
 fn build_enable_ansi_token_stream(attribute_args: &MacroArgs) -> Tokens {
   match &attribute_args.color {
       Some(color) => color.to_token_stream(),
@@ -272,9 +240,4 @@ fn build_enable_ansi_token_stream(attribute_args: &MacroArgs) -> Tokens {
         }
       }
   }
-}
-
-#[cfg(not(feature = "trace"))]
-fn expand_tracing_init(_attribute_args: &MacroArgs) -> Tokens {
-  quote! {}
 }
