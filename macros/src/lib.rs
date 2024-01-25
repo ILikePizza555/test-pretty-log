@@ -114,33 +114,14 @@ fn try_test(punctuated_args: Punctuated<Meta, Comma>, input: ItemFn) -> syn::Res
 
   let test_attr = extract_test_attribute(&macro_args, &attrs);
 
-  let env_filter = build_env_filter_token_stream(&macro_args);
-  let enable_ansi = build_enable_ansi_token_stream(&macro_args);
+  let env_filter = &macro_args.default_log_filter.map_or(quote! { None }, |s| quote! { Some(#s) });
+  let enable_ansi = &macro_args.color.map_or(quote! { None }, |b| quote! { Some(#b) });
 
   let result = quote! {
     #test_attr
     #(#attrs)*
     #vis #sig {
-      // We put all initialization code into a separate module here in
-      // order to prevent potential ambiguities that could result in
-      // compilation errors. E.g., client code could use traits that
-      // could have methods that interfere with ones we use as part of
-      // initialization; with a `Foo` trait that is implemented for T
-      // and that contains a `map` (or similarly common named) method
-      // that could cause an ambiguity with `Iterator::map`, for
-      // example.
-      // The alternative would be to use fully qualified call syntax in
-      // all initialization code, but that's much harder to control.
-      mod tracing_init {
-        use ::test_pretty_log::tracing_subscriber::EnvFilter;
-        use ::test_pretty_log::runtime::{parse_env_var_color, init_subscriber};
-
-        pub fn init() {
-          init_subscriber(#env_filter, #enable_ansi).expect("Another global subscriber was set");
-        }
-      }
-
-      tracing_init::init();
+      let __default_tracing_subscriber_guard = ::test_pretty_log::runtime::init(#env_filter, #enable_ansi);
 
       #block
     }
@@ -163,25 +144,4 @@ fn extract_test_attribute(macro_args: &MacroArgs, attrs: &Vec<Attribute>) -> Opt
 
 fn is_test_attribute(attribute: &Attribute) -> bool {
   attribute.meta.path().segments.last().is_some_and(|seg| seg.ident == "test")
-}
-
-fn build_env_filter_token_stream(attribute_args: &MacroArgs) -> Tokens {
-  match &attribute_args.default_log_filter {
-    Some(default_log_filter) => quote! {
-      EnvFilter::builder()
-        .with_default_directive(
-          #default_log_filter
-            .parse()
-            .expect("test-pretty-log: default_log_filter must be valid"))
-        .from_env_lossy()
-    },
-    _ => quote! { EnvFilter::from_default_env() }
-  }
-}
-
-fn build_enable_ansi_token_stream(attribute_args: &MacroArgs) -> Tokens {
-  match &attribute_args.color {
-      Some(color) => color.to_token_stream(),
-      None => quote! { parse_env_var_color() }
-  }
 }

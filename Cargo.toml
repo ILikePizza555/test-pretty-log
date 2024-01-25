@@ -1,6 +1,6 @@
 [package]
 name = "test-pretty-log"
-version = "0.6.1"
+version = "0.6.2"
 authors = ["Izzy Lancaster <izzylanfox@gmail.com>", "Daniel Mueller <deso@posteo.net>"]
 edition = "2021"
 rust-version = "1.75"
@@ -26,22 +26,18 @@ tracing infrastructure before running tests.
 """
 include = ["src/*.rs", "/LICENSE-*", "/README.md", "/CHANGELOG.md"]
 
-[[test]]
-name = "default_log_filter"
-path = "tests/default_log_filter.rs"
-
 [workspace]
 members = ["macros"]
 
 [dependencies]
 test-pretty-log-macros = {version = "0.6.1", path = "macros"}
 tracing-subscriber = {version = "0.3.17", default-features = false, features = ["env-filter", "fmt", "ansi"]}
+tracing = { version = "0.1.4" }
 
 [dev-dependencies]
 logging = {version = "0.4.8", package = "log"}
 test-case = {version = "3.1"}
 tokio = {version = "1.0", default-features = false, features = ["rt-multi-thread", "macros"]}
-tracing = {version = "0.1.20"}
 
 # error: cannot find macro `__lazy_static_internal` in this scope
 #   --> ~/.cargo/registry/src/github.com-1ecc6299db9ec823/sharded-slab-0.1.4/src/tid.rs:33:1

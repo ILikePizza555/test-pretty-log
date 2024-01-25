@@ -1,6 +1,6 @@
 [package]
 name = "test-pretty-log-macros"
-version = "0.6.1"
+version = "0.6.2"
 authors = ["Daniel Mueller <deso@posteo.net>"]
 edition = "2021"
 rust-version = "1.61"

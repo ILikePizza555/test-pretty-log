@@ -1,3 +1,9 @@
+0.6.2
+---
+- Move most of the code into runtime
+- Remove internal init module generated for each test
+- Fix test panic because a default global subscriber is already set
+
 0.6.1
 ---
 - Fixed broken dependency on upstream macro

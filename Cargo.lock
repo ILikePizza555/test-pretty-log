@@ -280,7 +280,7 @@ dependencies = [
 
 [[package]]
 name = "test-pretty-log"
-version = "0.6.1"
+version = "0.6.2"
 dependencies = [
  "lazy_static",
  "log",
@@ -293,7 +293,7 @@ dependencies = [
 
 [[package]]
 name = "test-pretty-log-macros"
-version = "0.6.1"
+version = "0.6.2"
 dependencies = [
  "proc-macro2",
  "quote",
