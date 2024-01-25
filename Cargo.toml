@@ -30,10 +30,9 @@ include = ["src/*.rs", "/LICENSE-*", "/README.md", "/CHANGELOG.md"]
 [[test]]
 name = "default_log_filter"
 path = "tests/default_log_filter.rs"
-required-features = ["log", "unstable"]
 
 [features]
-default = ["log"]
+default = []
 # TODO: use "dep:{tracing-subscriber,evn_logger}" once our MSRV is 1.60 or higher.
 trace = ["tracing-subscriber", "test-log-macros/trace"]
 log = ["env_logger", "test-log-macros/log"]
