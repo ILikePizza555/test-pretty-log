@@ -34,7 +34,7 @@ path = "tests/default_log_filter.rs"
 members = ["macros"]
 
 [dependencies]
-test-pretty-log-macros = {version = "0.6.0", path = "macros"}
+test-pretty-log-macros = {version = "0.6.1", path = "macros"}
 tracing-subscriber = {version = "0.3.17", default-features = false, features = ["env-filter", "fmt", "ansi"]}
 
 [dev-dependencies]
