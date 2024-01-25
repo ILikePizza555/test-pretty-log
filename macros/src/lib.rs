@@ -22,10 +22,6 @@ use syn::Meta;
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
 
-const ENV_VAR_SPAN_EVENTS: &str = "RUST_LOG_SPAN_EVENTS";
-const ENV_VAR_COLOR: &str = "RUST_LOG_COLOR";
-const ENV_VAR_FORMAT: &str = "RUST_LOG_FORMAT";
-
 #[derive(Debug, Default)]
 struct MacroArgs {
   inner_test: Option<Tokens>,
@@ -118,7 +114,8 @@ fn try_test(punctuated_args: Punctuated<Meta, Comma>, input: ItemFn) -> syn::Res
 
   let test_attr = extract_test_attribute(&macro_args, &attrs);
 
-  let tracing_init = expand_tracing_init(&macro_args);
+  let env_filter = build_env_filter_token_stream(&macro_args);
+  let enable_ansi = build_enable_ansi_token_stream(&macro_args);
 
   let result = quote! {
     #test_attr
@@ -134,15 +131,16 @@ fn try_test(punctuated_args: Punctuated<Meta, Comma>, input: ItemFn) -> syn::Res
       // example.
       // The alternative would be to use fully qualified call syntax in
       // all initialization code, but that's much harder to control.
-      mod init {
-        use ::test_pretty_log::runtime::env_var;
+      mod tracing_init {
+        use ::test_pretty_log::tracing_subscriber::EnvFilter;
+        use ::test_pretty_log::runtime::{parse_env_var_color, init_subscriber};
 
         pub fn init() {
-          #tracing_init
+          init_subscriber(#env_filter, #enable_ansi).expect("Another global subscriber was set");
         }
       }
 
-      init::init();
+      tracing_init::init();
 
       #block
     }
@@ -167,77 +165,23 @@ fn is_test_attribute(attribute: &Attribute) -> bool {
   attribute.meta.path().segments.last().is_some_and(|seg| seg.ident == "test")
 }
 
-/// Expand the initialization code for the `tracing` crate.
-fn expand_tracing_init(attribute_args: &MacroArgs) -> Tokens {
-  let env_filter = build_env_filter_token_stream(attribute_args);
-  let enable_ansi = build_enable_ansi_token_stream(attribute_args);
-
-  quote! {
-    {
-      let __internal_event_filter = {
-        use ::test_pretty_log::tracing_subscriber::fmt::format::FmtSpan;
-
-        match env_var(#ENV_VAR_SPAN_EVENTS).as_deref() {
-          Some(mut value) => {
-            value
-              .split(",")
-              .map(|filter| match filter.trim() {
-                "new" => FmtSpan::NEW,
-                "enter" => FmtSpan::ENTER,
-                "exit" => FmtSpan::EXIT,
-                "close" => FmtSpan::CLOSE,
-                "active" => FmtSpan::ACTIVE,
-                "full" => FmtSpan::FULL,
-                _ => panic!("test-pretty-log: RUST_LOG_SPAN_EVENTS must contain filters separated by `,`.\n\t\
-                  For example: `active` or `new,close`\n\t\
-                  Supported filters: new, enter, exit, close, active, full\n\t\
-                  Got: {}", value),
-              })
-              .fold(FmtSpan::NONE, |acc, filter| filter | acc)
-          },
-          None => FmtSpan::NONE,
-        }
-      };
-
-      let subscriber_builder = ::test_pretty_log::tracing_subscriber::FmtSubscriber::builder()
-        .with_env_filter(#env_filter)
-        .with_span_events(__internal_event_filter)
-        .with_test_writer()
-        .with_ansi(#enable_ansi);
-
-      let _ = match env_var(#ENV_VAR_FORMAT).as_deref() {
-        None | Some("pretty") => subscriber_builder.pretty().try_init(),
-        Some("full") => subscriber_builder.try_init(),
-        Some("compact") => subscriber_builder.compact().try_init(),
-        Some(e) => panic!("test-pretty-log: RUST_LOG_FORMAT must be one of `pretty`, `full`, or `compact`. Got: {}", e),
-      };
-    }
-  }
-}
-
 fn build_env_filter_token_stream(attribute_args: &MacroArgs) -> Tokens {
   match &attribute_args.default_log_filter {
     Some(default_log_filter) => quote! {
-      ::test_pretty_log::tracing_subscriber::EnvFilter::builder()
+      EnvFilter::builder()
         .with_default_directive(
           #default_log_filter
             .parse()
             .expect("test-pretty-log: default_log_filter must be valid"))
         .from_env_lossy()
     },
-    _ => quote! { ::test_pretty_log::tracing_subscriber::EnvFilter::from_default_env() }
+    _ => quote! { EnvFilter::from_default_env() }
   }
 }
 
 fn build_enable_ansi_token_stream(attribute_args: &MacroArgs) -> Tokens {
   match &attribute_args.color {
       Some(color) => color.to_token_stream(),
-      None => quote! {
-        match env_var(#ENV_VAR_COLOR).as_deref() {
-          None | Some("1" | "true" | "t" | "on") => true,
-          Some("0" | "false" | "f" | "off") => false,
-          Some(_) => panic!("test-pretty-log: {} must be a boolean value", #ENV_VAR_COLOR)
-        }
-      }
+      None => quote! { parse_env_var_color() }
   }
 }
