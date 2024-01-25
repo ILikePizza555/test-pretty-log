@@ -30,7 +30,7 @@ include = ["src/*.rs", "/LICENSE-*", "/README.md", "/CHANGELOG.md"]
 members = ["macros"]
 
 [dependencies]
-test-pretty-log-macros = {version = "0.6.1", path = "macros"}
+test-pretty-log-macros = {version = "0.6.2", path = "macros"}
 tracing-subscriber = {version = "0.3.17", default-features = false, features = ["env-filter", "fmt", "ansi"]}
 tracing = { version = "0.1.4" }
 
