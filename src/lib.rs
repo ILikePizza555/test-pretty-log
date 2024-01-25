@@ -63,6 +63,9 @@
 /// ```
 pub use test_log_macros::test;
 
+#[doc(hidden)]
+pub mod runtime;
+
 #[cfg(feature = "trace")]
 #[doc(hidden)]
 pub use tracing_subscriber;
@@ -70,3 +73,4 @@ pub use tracing_subscriber;
 #[cfg(feature = "log")]
 #[doc(hidden)]
 pub use env_logger;
+

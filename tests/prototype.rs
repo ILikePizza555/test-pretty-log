@@ -6,8 +6,10 @@
 //! cargo expand --test=prototype
 //! ```
 
+use tracing::debug;
 
 #[test_pretty_log::test(color = false)]
 fn it_works() {
+  debug!("test");
   assert_eq!(2 + 2, 4);
 }

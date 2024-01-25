@@ -25,7 +25,7 @@ description = """
 A replacement of the #[test] attribute that initializes logging and/or
 tracing infrastructure before running tests.
 """
-include = ["src/lib.rs", "/LICENSE-*", "/README.md", "/CHANGELOG.md"]
+include = ["src/*.rs", "/LICENSE-*", "/README.md", "/CHANGELOG.md"]
 
 [[test]]
 name = "default_log_filter"

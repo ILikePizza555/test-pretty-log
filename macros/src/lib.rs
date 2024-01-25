@@ -136,10 +136,7 @@ fn try_test(punctuated_args: Punctuated<Meta, Comma>, input: ItemFn) -> syn::Res
       // The alternative would be to use fully qualified call syntax in
       // all initialization code, but that's much harder to control.
       mod init {
-        fn env_var(key: &str) -> Option<String> {
-          ::std::env::var_os(key)
-            .map(|oss| oss.to_ascii_lowercase().to_str().expect(format!("test-pretty-log: {} must be valid UTF-8", key).as_str()).to_owned())
-        }
+        use ::test_pretty_log::runtime::env_var;
 
         pub fn init() {
           #logging_init
