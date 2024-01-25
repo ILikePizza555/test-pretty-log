@@ -61,7 +61,7 @@
 /// }
 /// # }
 /// ```
-pub use test_log_macros::test;
+pub use test_pretty_log_macros::test;
 
 #[doc(hidden)]
 pub mod runtime;

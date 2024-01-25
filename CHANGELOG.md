@@ -1,3 +1,7 @@
+0.6.1
+---
+- Fixed broken dependency on upstream macro
+
 0.6.0
 ---
 - Remove dependency on env_logger.

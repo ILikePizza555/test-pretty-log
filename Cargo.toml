@@ -1,6 +1,6 @@
 [package]
 name = "test-pretty-log"
-version = "0.6.0"
+version = "0.6.1"
 authors = ["Izzy Lancaster <izzylanfox@gmail.com>", "Daniel Mueller <deso@posteo.net>"]
 edition = "2021"
 rust-version = "1.75"
@@ -34,7 +34,7 @@ path = "tests/default_log_filter.rs"
 members = ["macros"]
 
 [dependencies]
-test-log-macros = {version = "0.2.14", path = "macros"}
+test-pretty-log-macros = {version = "0.6.0", path = "macros"}
 tracing-subscriber = {version = "0.3.17", default-features = false, features = ["env-filter", "fmt", "ansi"]}
 
 [dev-dependencies]

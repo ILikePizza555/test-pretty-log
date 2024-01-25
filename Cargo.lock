@@ -279,25 +279,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "test-log-macros"
-version = "0.2.14"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "test-pretty-log"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "lazy_static",
  "log",
  "test-case",
- "test-log-macros",
+ "test-pretty-log-macros",
  "tokio",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "test-pretty-log-macros"
+version = "0.6.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
